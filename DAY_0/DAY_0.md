@@ -29,7 +29,7 @@ Subject:
 
 1. Turn the pod definition into a Deployment definition
 2. Apply the deployment on the cluster
-3. scale the deployment up and down with `kubectl scale` command
+3. scale the deployment up to 3 replicas and down with `kubectl scale` command
 4. Check the deployment logs with `kubectl logs`
 5. Configure readiness and liveness probes for the deployment
 
@@ -46,6 +46,17 @@ Subject:
 1. Create a new ConfigMap containing the `index.html` file from this directory (Check the `kubectl create cm --help` command output for tips on how to create a ConfigMap from a file)
 2. Check that the ConfigMap exists with `kubectl get cm -o yaml`
 3. Mount the `index.html` file in the NGinx deployment at `/usr/share/nginx/html`
+4. Add these requests and limits to your pod
+```yaml
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "250m"
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+```
+5. Scale your deployment to 100 replicas, what happens ?
 
 # Update
 
