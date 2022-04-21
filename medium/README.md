@@ -12,6 +12,7 @@ sudo mv kubectl /usr/local/bin
 ```
 
 - Create a file named `key.pem`, paste the contents of the provider private key
+- run `chmod 600 key.pem`
 - Set the `SERVER_IP` environment variable: `export SERVER_IP=1.2.3.4` (replace `1.2.3.4` with the IP provided for the lab)
 - Download the `kubeconfig` file from the server : `scp -i key.pem ubuntu@${SERVER_IP}:/home/ubuntu/.kube/config ./config`
 - Edit the `config` file, and change the `clusters[0].cluster.server` property IP address to the provider lab IP
