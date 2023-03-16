@@ -58,6 +58,116 @@ Subject:
 ```
 5. Scale your deployment to 100 replicas, what happens ?
 
+# Storage
+
+1. Create StorageClass with WaitForFirstConsumer Binding Mode
+
+   Create a StorageClass that sets volumeBindingMode: WaitForFirstConsumer to enable volume topology-aware scheduling. This mode instructs Kubernetes to wait to bind a PVC until a Pod using it is scheduled. (See tip: https://kubernetes.io/docs/concepts/storage/storage-classes/#local)
+
+   ```
+   cat << EOF | kubectl apply -f -
+   kind: StorageClass
+   apiVersion: storage.k8s.io/v1
+   metadata:
+     name: local-storage
+   provisioner: kubernetes.io/no-provisioner
+   volumeBindingMode: WaitForFirstConsumer
+   EOF
+   ```
+
+2. Prepare volume on the host
+   
+   ```
+   mkdir -p /home/ubuntu/volumes/pv1
+   chmod 777 /home/ubuntu/volumes/pv1
+   ```
+
+3. Create Local PersistentVolume that will be using the local-storage StorageClass (tip: https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolume)
+
+   Its starage capacity must be `5Gi` and accessModes `ReadWriteOnce`. Specify the folder you just created on the host as the local path of the volume.
+
+   ```
+   cat << EOF | kubectl apply -f -
+   apiVersion: v1
+   kind: PersistentVolume
+   metadata:
+     name: local-pv
+   spec:
+     capacity:
+       storage: 5Gi
+     accessModes:
+     - ReadWriteOnce
+     storageClassName: local-storage
+     local:
+       path: /home/ubuntu/volumes/pv1
+     nodeAffinity:
+       required:
+         nodeSelectorTerms:
+         - matchExpressions:
+           - key: kubernetes.io/hostname
+             operator: In
+             values:
+             - $HOSTNAME
+   EOF
+   ```
+
+4. Launch the `kubectl get pv` command to observe the newly created Persistent Volume
+
+5. Create a PersistentVolumeClaim that will be using the local-storage StorageClass (tip: https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolumeclaim)
+
+   AccessModes must be `ReadWriteOnce` and storage request `1Gi`.
+
+   ```
+   cat << EOF | kubectl apply -f -
+   kind: PersistentVolumeClaim
+   apiVersion: v1
+   metadata:
+     name: local-pvc
+   spec:
+     accessModes:
+     - ReadWriteOnce
+     storageClassName: local-storage
+     resources:
+       requests:
+         storage: 1Gi
+   EOF
+   ```
+
+6. Launch the `kubectl get pvc` command to observe the newly created Persistent Volume Claim
+
+7. Create a POD with local persistent volume (tip: https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-pod)
+
+   The pod will use `busybox` as an image and will be mounting the persistent volume in `/mnt` folder. Command will be the following in order to write some text into the volume: `['sh', '-c', 'echo "The local volume is mounted!" > /mnt/test.txt && sleep 3600']`.
+
+   ```
+   cat << EOF | kubectl apply -f -
+   apiVersion: v1
+   kind: Pod
+   metadata:
+     name: local-vol
+   spec:
+     containers:
+     - name: app
+       image: busybox
+       command: ['sh', '-c', 'echo "The local volume is mounted!" > /mnt/test.txt && sleep 3600']
+       volumeMounts:
+         - name: local-persistent-storage
+           mountPath: /mnt
+     volumes:
+       - name: local-persistent-storage
+         persistentVolumeClaim:
+           claimName: local-pvc
+   EOF
+   ```
+
+5. Check that the pod is running properly 
+
+6. Use kubectl to check the new PV and PVC status
+
+7. Delete the `local-vol` pod
+
+7. On the host, cat the `/home/ubuntu/pv1/test.txt` file to validate that the data has been persisted
+
 # Update
 
 1. Change the nginx image tag to `1.21` (tip: Check the help page of `kubectl set image`)
