@@ -85,116 +85,76 @@ Subject:
     </p>
     </details>
 
-2. Prepare volume on the host
+2. Create a StatefulSet application that will be using the local-storage StorageClass (tip: [https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolume](https://kubernetes.io/blog/2019/04/04/kubernetes-1.14-local-persistent-volumes-ga/#how-to-use-a-local-persistent-volume))
+
+   - Each pod volumes must have a storage capacity of `1Gi` and accessModes `ReadWriteOnce`.
+   - The pod will use `busybox` as an image and will be mounting the persistent volume in `/mnt` folder.
+   - We will use the previously created storage class to provision our volumes.
+   - To write some text into the volumes, we will configure the containers to execute the following command on startup: `['sh', '-c', 'echo "The local volume is mounted!" > /mnt/test.txt && sleep 3600']`.
+
+   <details><summary>show answer</summary>
+   <p>
    
    ```
-   mkdir -p /home/ubuntu/volumes/pv1
-   chmod 777 /home/ubuntu/volumes/pv1
-   ```
-
-3. Create Local PersistentVolume that will be using the local-storage StorageClass (tip: https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolume)
-
-   Its storage capacity must be `5Gi` and accessModes `ReadWriteOnce`. Specify the folder you just created on the host as the local path of the volume.
-
-   <details><summary>show answer</summary>
-   <p>
-
-   ```
    cat << EOF | kubectl apply -f -
-   apiVersion: v1
-   kind: PersistentVolume
+   apiVersion: apps/v1
+   kind: StatefulSet
    metadata:
-     name: local-pv
+     name: my-app-with-local-storage
    spec:
-     capacity:
-       storage: 5Gi
-     accessModes:
-     - ReadWriteOnce
-     storageClassName: local-storage
-     local:
-       path: /home/ubuntu/volumes/pv1
-     nodeAffinity:
-       required:
-         nodeSelectorTerms:
-         - matchExpressions:
-           - key: kubernetes.io/hostname
-             operator: In
-             values:
-             - $HOSTNAME
+     replicas: 3
+     selector:
+       matchLabels:
+         app: my-app-with-local-storage
+     template:
+       metadata:
+         labels:
+           app: my-app-with-local-storage
+       spec:
+         containers:
+         - name: my-container
+           image: registry.k8s.io/busybox
+           command:
+           - "/bin/sh"
+           args:
+           - "-c"
+           - 'echo "The local volume is mounted!" > /mnt/test.txt && sleep 3600'
+           volumeMounts:
+           - name: my-volume
+             mountPath: /mnt
+     volumeClaimTemplates:
+     - metadata:
+         name: my-volume
+       spec:
+         accessModes: [ "ReadWriteOnce" ]
+         storageClassName: "local-path"
+         resources:
+           requests:
+             storage: 1Gi
    EOF
    ```
 
    </p>
    </details>
 
-4. Launch the `kubectl get pv` command to observe the newly created Persistent Volume
+4. Use kubectl to check the new PV and PVC status
 
-5. Create a PersistentVolumeClaim that will be using the local-storage StorageClass (tip: https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolumeclaim)
+5. Check that the pods are running properly
 
-   AccessModes must be `ReadWriteOnce` and storage request `1Gi`.
+6. Describe one of the PV and take a look at the following fields: `Node Affinity` and `Source Path`
 
-   <details><summary>show answer</summary>
-   <p>
+7. Delete the StatefulSet that was created earlier
 
-   ```
-   cat << EOF | kubectl apply -f -
-   kind: PersistentVolumeClaim
-   apiVersion: v1
-   metadata:
-     name: local-pvc
-   spec:
-     accessModes:
-     - ReadWriteOnce
-     storageClassName: local-storage
-     resources:
-       requests:
-         storage: 1Gi
-   EOF
-   ```
+8. On the host, cat the `test.txt` file that was created into the PV to validate that the data has been persisted
 
-   </p>
-   </details>
-
-6. Launch the `kubectl get pvc` command to observe the newly created Persistent Volume Claim
-
-7. Create a POD with local persistent volume (tip: https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-pod)
-
-   The pod will use `busybox` as an image and will be mounting the persistent volume in `/mnt` folder. Command will be the following in order to write some text into the volume: `['sh', '-c', 'echo "The local volume is mounted!" > /mnt/test.txt && sleep 3600']`.
+9. Re-create the StatefulSet you just deleted. Are new PV and PVC created ?
 
    <details><summary>show answer</summary>
    <p>
-
-   ```
-   cat << EOF | kubectl apply -f -
-   apiVersion: v1
-   kind: Pod
-   metadata:
-     name: local-vol
-   spec:
-     containers:
-     - name: app
-       image: busybox
-       command: ['sh', '-c', 'echo "The local volume is mounted!" > /mnt/test.txt && sleep 3600']
-       volumeMounts:
-         - name: local-persistent-storage
-           mountPath: /mnt
-     volumes:
-       - name: local-persistent-storage
-         persistentVolumeClaim:
-           claimName: local-pvc
-   EOF
-   ```
-
+       
+       No. the .spec.volumeClaimTemplates field in the STS sets a fixed name for the PVC which will result in the previously created ones to be used.
    </p>
    </details>
-
-5. Check that the pod is running properly 
-
-6. Use kubectl to check the new PV and PVC status
-
-7. Delete the `local-vol` pod
-
-7. On the host, cat the `/home/ubuntu/pv1/test.txt` file to validate that the data has been persisted
 
 # Update
 
