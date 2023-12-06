@@ -64,28 +64,19 @@ Subject:
 
 # Storage
 
-1. Create StorageClass with WaitForFirstConsumer Binding Mode
+1. Use the following command to deploy a Local Storage Provisioner:
 
-   Create a StorageClass that sets volumeBindingMode: WaitForFirstConsumer to enable volume topology-aware scheduling. This mode instructs Kubernetes to wait to bind a PVC until a Pod using it is scheduled. (See tip: https://kubernetes.io/docs/concepts/storage/storage-classes/#local)
-
-   <details><summary>show answer</summary>
-   <p>
-   
    ```
-   cat << EOF | kubectl apply -f -
-   kind: StorageClass
-   apiVersion: storage.k8s.io/v1
-   metadata:
-     name: local-storage
-   provisioner: kubernetes.io/no-provisioner
-   volumeBindingMode: WaitForFirstConsumer
-   EOF
+   kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.25/deploy/local-path-storage.yaml
    ```
 
-    </p>
-    </details>
+2. This will create a storageClass named "local-path" that we will be able to create Persistent Volumes on the cluster node. Use the following command to inspect its content:
 
-2. Create a StatefulSet application that will be using the local-storage StorageClass (tip: [https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolume](https://kubernetes.io/blog/2019/04/04/kubernetes-1.14-local-persistent-volumes-ga/#how-to-use-a-local-persistent-volume))
+   ```
+   kubectl get storageclass local-path -o yaml
+   ```
+
+3. Create a StatefulSet application that will be using the local-storage StorageClass (tip: [https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolume](https://kubernetes.io/blog/2019/04/04/kubernetes-1.14-local-persistent-volumes-ga/#how-to-use-a-local-persistent-volume))
 
    - Each pod volumes must have a storage capacity of `1Gi` and accessModes `ReadWriteOnce`.
    - The pod will use `busybox` as an image and will be mounting the persistent volume in `/mnt` folder.
