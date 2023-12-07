@@ -47,7 +47,7 @@ export PATH="/home/gitpod/.local/bin:$PATH"
 
 - Add an `initContainer` that uses the nginx image and just exit with code 0 to your chart pod template. (https://kubernetes.io/docs/concepts/workloads/pods/init-containers/#using-init-containers)
 - Create a shared emptyDir in the pod, mount in on both containers (https://kubernetes.io/docs/concepts/storage/volumes/#emptydir)
-- Edit the `command` of the initcontainer to generate a certificate in the shared volume with `openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365`
+- Edit the `command` of the initcontainer to generate a certificate in the shared volume with `openssl req -x509 -newkey rsa:4096 -nodes -out /mnt/cert.pem -keyout /mnt/key.pem -days 365 -subj '/C=FR/ST=TOULOUSE/L=TOULOUSE/O=Acme Inc. /OU=IT Department/CN=acme.com'`
 - Configure nginx to use the generated certificate from the shared volume
 
 # Operators
