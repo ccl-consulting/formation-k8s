@@ -40,15 +40,15 @@ export PATH="/home/gitpod/.local/bin:$PATH"
   *Tip: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#an-example-of-a-pod-that-uses-pod-affinity*
 - Re-deploy the application and validate that both pods can run alongside on the same node
 
-# PodDistruptionBudget
+# podDisruptionBudget
 
 - Ensure that your deployment `replicas` are set to 2 in the helm templates
-- Create a `podDistruptionBudget` for your deployment with a `maxUnavailable` value set to `1` \
+- Create a `podDisruptionBudget` for your deployment with a `maxUnavailable` value set to `1` \
   *Tip: https://kubernetes.io/docs/tasks/run-application/configure-pdb/*
-- Delete both pods with `kubectl delete pods -l app.kubernetes.io/name=application`, notice that pods are deleted even though a `podDistruptionBudget` was created. Why ?
+- Delete both pods with `kubectl delete pods -l app.kubernetes.io/name=application`, notice that pods are deleted even though a `podDisruptionBudget` was created. Why ?
 - Set the `maxUnavailable` value in the pdb to 0
-- Delete both pods with `kubectl delete po -l app.kubernetes.io/name=application`, notice that pods are deleted even though a `podDistruptionBudget` was created. Why ?
-- Delete the PodDistruptionBudget
+- Delete both pods with `kubectl delete po -l app.kubernetes.io/name=application`, notice that pods are deleted even though a `podDisruptionBudget` was created. Why ?
+- Delete the podDisruptionBudget
 
 # initContainers
 
