@@ -113,6 +113,7 @@ export PATH="/home/gitpod/.local/bin:$PATH"
 - Disable default service-account mounting for the deployment in `application` chart \
   *Tip: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server*
 - Use the service account you created above in the `application` chart pod template.
+  *Tip: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#manually-create-a-long-lived-api-token-for-a-serviceaccount*
 
 ## User
 
