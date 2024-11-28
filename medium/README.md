@@ -146,7 +146,7 @@ export PATH="/home/gitpod/.local/bin:$PATH"
 - Check the logs of the `net-test` pod, what changed ?
 - Add an exception to allow egress to the address `1.1.1.1` in the NetworkPolicy \
   *Tip: https://kubernetes.io/docs/concepts/services-networking/network-policies/#networkpolicy-resource*
-- Create a second network test pod with `kubectl run net-test-1 --image=chainguard/netcat --labels=network=unrestricted --command -- /bin/sh -c 'while true; do echo -n read_input | timeout 1 nc -vz 8.8.8.8 53; sleep 2; done'`
+- Create a second network test pod with `kubectl run net-test --image=subfuzion/netcat --command -- /bin/sh -c 'while true; do echo -n read_input | nc -vz 1.1.1.1 53; sleep 2; done'`
 - Check the logs of the `net-test-1` pod
 - Edit the network policy to exclude pod `net-test-1` from egress filtering \
   *Tip: https://kubernetes.io/docs/concepts/services-networking/network-policies/#networkpolicy-resource*
