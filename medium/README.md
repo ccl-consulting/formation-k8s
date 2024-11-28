@@ -140,7 +140,7 @@ export PATH="/home/gitpod/.local/bin:$PATH"
 
 # NetworkPolicy
 
-- Run a simple network test pod with `kubectl run net-test --image=subfuzion/netcat --command -- /bin/sh -c 'while true; do echo -n read_input | timeout 1 nc -vz 1.1.1.1 53; sleep 2; done'`
+- Run a simple network test pod with `kubectl run net-test --image=subfuzion/netcat --command -- /bin/sh -c 'while true; do echo -n read_input | nc -vz 1.1.1.1 53; sleep 2; done'`
 - Create a deny-all egress network policy \
   *Tip: https://kubernetes.io/docs/concepts/services-networking/network-policies/#default-deny-all-egress-traffic*
 - Check the logs of the `net-test` pod, what changed ?
