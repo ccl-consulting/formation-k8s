@@ -99,51 +99,6 @@ kubectl get storageclass local-path -o yaml
    _Tip: <https://kubernetes.io/blog/2019/04/04/kubernetes-1.14-local-persistent-volumes-ga/#how-to-use-a-local-persistent-volume>_ \
    _Tip: <https://kubernetes.io/fr/docs/concepts/workloads/controllers/statefulset/#composants>_
 
-   <details><summary>show answer</summary>
-   <p>
-
-```sh
-   cat << EOF | kubectl apply -f -
-   apiVersion: apps/v1
-   kind: StatefulSet
-   metadata:
-     name: my-app-with-local-storage
-   spec:
-     replicas: 3
-     selector:
-       matchLabels:
-         app: my-app-with-local-storage
-     template:
-       metadata:
-         labels:
-           app: my-app-with-local-storage
-       spec:
-         containers:
-         - name: my-container
-           image: registry.k8s.io/busybox
-           command:
-           - "/bin/sh"
-           args:
-           - "-c"
-           - 'echo "The local volume is mounted!" > /mnt/test.txt && sleep 3600'
-           volumeMounts:
-           - name: my-volume
-             mountPath: /mnt
-     volumeClaimTemplates:
-     - metadata:
-         name: my-volume
-       spec:
-         accessModes: [ "ReadWriteOnce" ]
-         storageClassName: "local-path"
-         resources:
-           requests:
-             storage: 1Gi
-   EOF
-```
-
-   </p>
-   </details>
-
 4. Use kubectl to check the new PV and PVC status \
    _Tip: <https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/>_
 
@@ -156,13 +111,6 @@ kubectl get storageclass local-path -o yaml
 8. On the host, cat the `test.txt` file that was created into the PV to validate that the data has been persisted
 
 9. Re-create the StatefulSet you just deleted. Are new PV and PVC created ?
-
-   <details><summary>show answer</summary>
-   <p>
-
-      No. the .spec.volumeClaimTemplates field in the STS sets a fixed name for the PVC which will result in the previously created ones being used.
-   </p>
-   </details>
 
 ## Update
 
